@@ -32,7 +32,6 @@ public class HomeController : ControllerBase
             var signInResult = await _signInManager.PasswordSignInAsync(user, password, false, false);
             if (signInResult.Succeeded)
             {
-
                 return Ok("signed in");
             }
         }
@@ -84,7 +83,7 @@ public class HomeController : ControllerBase
 
 
     [HttpPost("bothroles")]
-    [Authorize(Roles = "User, Administrator")]
+    [Authorize(Roles = "User, Admin")]
     public IActionResult BothRoles()
     {
         return Ok(new
@@ -94,7 +93,7 @@ public class HomeController : ControllerBase
     }
 
     [HttpPost("admins")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Admin")]
     public IActionResult SecretRole()
     {
         return Ok(new
@@ -104,13 +103,18 @@ public class HomeController : ControllerBase
     }
 
     [HttpGet("session-user")]
-    public async Task<IActionResult> SessionUser()
+    public IActionResult SessionUser()
     {
         try
         {
-            var name = HttpContext.User.Identity.Name;
-            var user = await _userManager.FindByNameAsync(name);
-            return Ok(new { Roles = await _userManager.GetRolesAsync(user) });
+
+            var claimsList = HttpContext.User.Claims
+                .Where(c => c.Type.EndsWith("role"))
+                .Select(x => x.Value);
+
+            if (!claimsList.Any()) return Unauthorized("no user");
+
+            return Ok(new { Claims = claimsList });
 
         }
         catch (Exception)

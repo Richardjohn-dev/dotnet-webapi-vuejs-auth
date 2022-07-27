@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using RoleBasedIdentityAuthentication.API.Constants;
 using System.Security.Claims;
 
 namespace RoleBasedIdentityAuthentication.API.Data
@@ -20,23 +19,23 @@ namespace RoleBasedIdentityAuthentication.API.Data
         public async Task ManageDataAsync()
         {
             await _dbContext.Database.MigrateAsync(); // same as running local Update-database after migration
-            await EnsureRolesAsync();
+            //await EnsureRolesAsync();
             await EnsureAdminAsync("admin", "password");
         }
 
-        private async Task EnsureRolesAsync()
-        {
-            if (!_dbContext.Roles.Any())
-            {
-                foreach (var role in Enum.GetNames(typeof(Roles)))
-                {
-                    if (!await _roleManager.RoleExistsAsync(role))
-                    {
-                        await _roleManager.CreateAsync(new IdentityRole(role));
-                    }
-                }
-            }
-        }
+        //private async Task EnsureRolesAsync()
+        //{
+        //    if (!_dbContext.Roles.Any())
+        //    {
+        //        foreach (var role in Enum.GetNames(typeof(Roles)))
+        //        {
+        //            if (!await _roleManager.RoleExistsAsync(role))
+        //            {
+        //                await _roleManager.CreateAsync(new IdentityRole(role));
+        //            }
+        //        }
+        //    }
+        //}
 
         private async Task EnsureAdminAsync(string userName, string password)
         {
@@ -50,8 +49,9 @@ namespace RoleBasedIdentityAuthentication.API.Data
                     EmailConfirmed = true
                 };
                 await _userManager.CreateAsync(adminUser, password);
-                await _userManager.AddToRoleAsync(adminUser, Roles.Administrator.ToString());
-                await _userManager.AddClaimAsync(adminUser, new Claim("api.admin", "big.api.cookie"));
+                //await _userManager.AddToRoleAsync(adminUser, Roles.Administrator.ToString());
+                await _userManager.AddClaimAsync(adminUser, new Claim(ClaimTypes.Role, "Admin"));
+                await _userManager.AddClaimAsync(adminUser, new Claim(ClaimTypes.Role, "User"));
             }
         }
     }
