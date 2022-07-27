@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RoleBasedAuthIdentity.API.Models.Dtos;
+namespace RoleBasedIdentityAuthentication.API.Models.Dtos;
 public class UserLoginDto
 {
     [Required]

@@ -4,12 +4,12 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:21175",
-      "sslPort": 44330
+      "applicationUrl": "http://localhost:36778",
+      "sslPort": 44354
     }
   },
   "profiles": {
-    "RoleBasedAuthIdentity.API": {
+    "RoleBasedIdentityAuthentication.API": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

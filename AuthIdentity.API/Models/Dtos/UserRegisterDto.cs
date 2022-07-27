@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthIdentity.API.Models.Dtos;
+namespace RoleBasedAuthIdentity.API.Models.Dtos;
 
 public class UserRegisterDto
 {

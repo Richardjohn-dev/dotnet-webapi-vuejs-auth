@@ -1,9 +1,10 @@
-﻿using AuthIdentity.API.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using RoleBasedAuthIdentity.API.Data;
+using RoleBasedAuthIdentity.API.Models;
 
-namespace AuthIdentity.API.Controllers;
+namespace RoleBasedAuthIdentity.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -11,17 +12,20 @@ public class HomeController : ControllerBase
 {
     private readonly UserManager<ApiUser> _userManager;
     private readonly SignInManager<ApiUser> _signInManager;
+    private readonly ApplicationDbContext _applicationDbContext;
 
-    public HomeController(UserManager<ApiUser> userManager, SignInManager<ApiUser> signInManager)
+    public HomeController(UserManager<ApiUser> userManager, SignInManager<ApiUser> signInManager, ApplicationDbContext applicationDbContext)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _applicationDbContext = applicationDbContext;
     }
 
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(string username, string password)
     {
+        await _signInManager.SignOutAsync();
         var user = await _userManager.FindByNameAsync(username);
         if (user != null)
         {
@@ -29,6 +33,7 @@ public class HomeController : ControllerBase
             var signInResult = await _signInManager.PasswordSignInAsync(user, password, false, false);
             if (signInResult.Succeeded)
             {
+
                 return Ok("signed in");
             }
         }
@@ -46,6 +51,8 @@ public class HomeController : ControllerBase
         };
 
         var result = await _userManager.CreateAsync(user, password);
+
+        await _userManager.AddToRoleAsync(user, "User");
 
         if (!result.Succeeded)
             return BadRequest(result.Errors);
@@ -68,24 +75,55 @@ public class HomeController : ControllerBase
     public async Task<IActionResult> LogOut()
     {
         await _signInManager.SignOutAsync();
+        // does this remove the cookie?
+        // what are the security risks here?
         return Ok(new
         {
-
             message = "signed out"
         });
     }
 
-    [Authorize]
-    [HttpPost("secret")]
-    public IActionResult Secret()
+    // Think of this as a tag/attribute that we can give more information to.
+    // Authorization Tri-fecta
+    // Authorization Policy = Authorization Requirements => Processed By Authorization Handlers
+
+    [HttpPost("bothroles")]
+    [Authorize(Roles = "User, Administrator")]
+    public IActionResult BothRoles()
     {
         return Ok(new
         {
-            message = "super secret info"
+            message = "customers and admins welcome"
         });
     }
 
-    ////[AllowAnonymous]
+    [HttpPost("admins")]
+    [Authorize(Roles = "Administrator")]
+    public IActionResult SecretRole()
+    {
+        return Ok(new
+        {
+            message = "admins only super secret info"
+        });
+    }
+
+    [HttpGet("session-user")]
+    public async Task<IActionResult> SessionUser()
+    {
+        try
+        {
+            var name = HttpContext.User.Identity.Name;
+            var user = await _userManager.FindByNameAsync(name);
+            return Ok(new { Roles = await _userManager.GetRolesAsync(user) });
+
+        }
+        catch (Exception)
+        {
+            return Unauthorized();
+        }
+    }
+
+    //////[AllowAnonymous]
     //[HttpPost]
     //public IActionResult Authenticate()
     //{
@@ -106,6 +144,8 @@ public class HomeController : ControllerBase
     //        new Claim("DrivingLicense", "A+"),
     //    };
 
+    //    // we trust These identities
+    //    // Can have many identities ((FB,Twitter,Linked...)
     //    var grandmaIdentity = new ClaimsIdentity(grandmaClaims, "Grandma Identity");
     //    var licenseIdentity = new ClaimsIdentity(licenseClaims, "Government");
 
