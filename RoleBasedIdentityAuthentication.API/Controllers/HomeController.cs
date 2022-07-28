@@ -24,19 +24,15 @@ public class HomeController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(string username, string password)
     {
-        //await _signInManager.SignOutAsync();
         var user = await _userManager.FindByNameAsync(username);
-        if (user != null)
-        {
-            // sign in
-            var signInResult = await _signInManager.PasswordSignInAsync(user, password, false, false);
-            if (signInResult.Succeeded)
-            {
-                return Ok("signed in");
-            }
-        }
+        if (user == null)
+            return Unauthorized("User not found");
 
-        return BadRequest();
+        var signInResult = await _signInManager.PasswordSignInAsync(user, password, false, false);
+        if (!signInResult.Succeeded)
+            return Unauthorized("Password incorrect");
+
+        return Ok("signed in");
     }
 
     [HttpPost("register")]

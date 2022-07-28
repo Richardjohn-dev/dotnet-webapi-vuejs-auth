@@ -18,7 +18,7 @@ public static class IdentityServicesRegistration
 
         services.AddIdentity<IdentityUser, IdentityRole>(config =>
         {
-            config.Password.RequiredLength = 6;
+            config.Password.RequiredLength = 5;
             config.Password.RequireDigit = false;
             config.Password.RequireNonAlphanumeric = false;
             config.Password.RequireUppercase = false;
@@ -45,7 +45,7 @@ public static class IdentityServicesRegistration
         });
 
         services.AddTransient<CustomCookieAuthenticationEvents>();
-
+        services.Configure<AdminSeed>(options => configuration.GetSection("AdminSeed").Bind(options));
         return services;
     }
 }
