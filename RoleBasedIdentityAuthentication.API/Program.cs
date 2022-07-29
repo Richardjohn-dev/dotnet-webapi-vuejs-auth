@@ -27,9 +27,19 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+// api is on 8000
+app.UseCors(options => options
+             .WithOrigins(new[] { "http://localhost:8080" })
+             .AllowAnyHeader()
+             .AllowAnyMethod()
+             .AllowCredentials()
+         );
+
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();

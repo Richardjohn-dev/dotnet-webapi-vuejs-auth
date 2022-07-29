@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using RoleBasedIdentityAuthentication.API.Models;
 using System.Security.Claims;
 
 namespace RoleBasedIdentityAuthentication.API.Data
@@ -8,12 +9,12 @@ namespace RoleBasedIdentityAuthentication.API.Data
     public class ApplicationDbSeeder
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<User> _userManager;
         private readonly AdminSeed _options;
 
         public ApplicationDbSeeder(
             ApplicationDbContext dbContext,
-            UserManager<IdentityUser> userManager,
+            UserManager<User> userManager,
             IOptions<AdminSeed> options)
         {
             _dbContext = dbContext;
@@ -29,20 +30,28 @@ namespace RoleBasedIdentityAuthentication.API.Data
 
         private async Task EnsureAdminAsync(string userName, string password)
         {
+            if (string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(password)) return;
 
             if (_options.Update == false)
             {
                 var adminUser = await _userManager.FindByNameAsync(userName);
                 if (adminUser == null)
                 {
-                    adminUser = new IdentityUser
+                    adminUser = new User
                     {
                         UserName = userName,
                         EmailConfirmed = true
                     };
                     await _userManager.CreateAsync(adminUser, password);
-                    await _userManager.AddClaimAsync(adminUser, new Claim(ClaimTypes.Role, "Admin"));
-                    await _userManager.AddClaimAsync(adminUser, new Claim(ClaimTypes.Role, "User"));
+
+                    var claims = new List<Claim>
+                        {
+                            //new Claim(ClaimTypes.Name, userName),
+                            new Claim(ClaimTypes.Role, Constants.Roles.Administrator),
+                            new Claim(ClaimTypes.Role, Constants.Roles.User)
+                        };
+
+                    await _userManager.AddClaimsAsync(adminUser, claims);
                 }
             }
             else if (_options.Update == true && !string.IsNullOrEmpty(_options.PasswordUpdate) || !string.IsNullOrEmpty(_options.UsernameUpdate))
@@ -70,17 +79,17 @@ namespace RoleBasedIdentityAuthentication.API.Data
             }
         }
 
-        private async Task<bool> UpdateUsername(IdentityUser oldAdmin)
+        private async Task<bool> UpdateUsername(User updateAdmin)
         {
-            oldAdmin.UserName = _options.UsernameUpdate;
-            var userNameUpdatedResult = await _userManager.UpdateAsync(oldAdmin);
-            return userNameUpdatedResult.Succeeded;
+            var oldClaim = new Claim(ClaimTypes.NameIdentifier, updateAdmin.UserName);
+            await _userManager.RemoveClaimAsync(updateAdmin, oldClaim);
+            updateAdmin.UserName = _options.UsernameUpdate;
+            await _userManager.AddClaimAsync(updateAdmin, new Claim(ClaimTypes.NameIdentifier, _options.UsernameUpdate));
+            return (await _userManager.UpdateAsync(updateAdmin)).Succeeded;
         }
-        private async Task<bool> UpdatePassword(IdentityUser oldAdmin)
+        private async Task<bool> UpdatePassword(User oldAdmin)
         {
-            var newPassword = _options.PasswordUpdate;
-            var passwordUpdatedResult = await _userManager.ChangePasswordAsync(oldAdmin, _options.Password, newPassword);
-            return passwordUpdatedResult.Succeeded;
+            return (await _userManager.ChangePasswordAsync(oldAdmin, _options.Password, _options.PasswordUpdate)).Succeeded;
         }
     }
 }

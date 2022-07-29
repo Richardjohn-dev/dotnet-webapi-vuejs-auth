@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace RoleBasedIdentityAuthentication.API.Authentication;
+
+// custom middleware to ensure cookie is removed after set period and not indefinitely extended
 //https://brokul.dev/authentication-cookie-lifetime-and-sliding-expiration
 
 public class CustomCookieAuthenticationEvents : CookieAuthenticationEvents
@@ -33,7 +35,7 @@ public class CustomCookieAuthenticationEvents : CookieAuthenticationEvents
         var ticketIssuedUtc =
             new DateTimeOffset(ticketIssuedTicks, TimeSpan.FromHours(0));
 
-        if (DateTimeOffset.UtcNow - ticketIssuedUtc > TimeSpan.FromDays(7))
+        if (DateTimeOffset.UtcNow - ticketIssuedUtc > TimeSpan.FromHours(6))
         {
             await RejectPrincipalAsync(context);
             return;

@@ -1,22 +1,31 @@
 ﻿
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Identity;
 using RoleBasedIdentityAuthentication.API.Data;
-using System.Security.Claims;
+using RoleBasedIdentityAuthentication.API.Models;
 
 namespace RoleBasedIdentityAuthentication.API.Authentication;
 
 public static class IdentityServicesRegistration
 {
-    public static IServiceCollection ConfigureIdentityServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection ConfigureIdentityServices(
+        this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+                .AddNegotiate();
+
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("Admin", policyBuilder => policyBuilder.RequireClaim(ClaimTypes.Role, "Admin"));
-            options.AddPolicy("User", policyBuilder => policyBuilder.RequireClaim(ClaimTypes.Role, "User"));
+            options.AddPolicy(Constants.Policies.UserAccess, policy =>
+                   policy.RequireAssertion(context =>
+                               context.User.IsInRole(Constants.Roles.Administrator)
+                               || context.User.IsInRole(Constants.Roles.User)));
 
+            options.FallbackPolicy = options.DefaultPolicy;
+            //Todo : why does this make CORS issue? probably https
         });
 
-        services.AddIdentity<IdentityUser, IdentityRole>(config =>
+        services.AddIdentity<User, IdentityRole>(config =>
         {
             config.Password.RequiredLength = 5;
             config.Password.RequireDigit = false;
@@ -32,20 +41,20 @@ public static class IdentityServicesRegistration
         services.ConfigureApplicationCookie(options =>
         {
             // Cookie settings
-            //options.Cookie.HttpOnly = true;
-            options.LoginPath = "/Auth/Login";
+            options.Cookie.Name = "RDI.Identity.Cookie";
             options.LogoutPath = "/Auth/Logout";
-            //options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
-            ////options.Cookie.Expiration.Equals(TimeSpan.Zero);
+
+            options.Cookie.HttpOnly = true;
+            options.SlidingExpiration = true;
+
             options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
             options.Cookie.MaxAge = options.ExpireTimeSpan;
-            options.SlidingExpiration = true;
-            options.Cookie.Name = "RDrive.Integrator.Identity.Cookie";
             options.EventsType = typeof(CustomCookieAuthenticationEvents);
         });
 
         services.AddTransient<CustomCookieAuthenticationEvents>();
-        services.Configure<AdminSeed>(options => configuration.GetSection("AdminSeed").Bind(options));
+        services.Configure<AdminSeed>(options =>
+                  configuration.GetSection("AdminSeed").Bind(options));
         return services;
     }
 }
