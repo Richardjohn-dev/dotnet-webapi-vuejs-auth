@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using RoleBasedIdentityAuthentication.API.Models;
 using RoleBasedIdentityAuthentication.API.Models.Dtos;
 
 namespace RoleBasedIdentityAuthentication.API.Controllers;
@@ -9,17 +10,17 @@ namespace RoleBasedIdentityAuthentication.API.Controllers;
 [ApiController]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
-    public AuthController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+    public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
     }
 
-    [AllowAnonymous]
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromQuery] UserLoginDto dto)
     {
         var signInResult = await _signInManager.PasswordSignInAsync(dto.Username, dto.Password, false, false);
@@ -49,10 +50,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
+    [AllowAnonymous]
     public async Task<IActionResult> LogOut()
     {
         await _signInManager.SignOutAsync();
-        // is it okay to leave a cookie around?
         return Ok("signed out");
     }
 

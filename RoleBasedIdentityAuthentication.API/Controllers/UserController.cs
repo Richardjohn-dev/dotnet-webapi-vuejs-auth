@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using RoleBasedIdentityAuthentication.API.Models;
 using RoleBasedIdentityAuthentication.API.Models.Dtos;
 using System.Security.Claims;
 
@@ -11,10 +12,10 @@ namespace RoleBasedIdentityAuthentication.API.Controllers;
 [Authorize(Roles = Constants.Roles.Administrator)]
 public class UserController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
-    public UserController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+    public UserController(UserManager<User> userManager, SignInManager<User> signInManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -24,7 +25,7 @@ public class UserController : ControllerBase
     //[Authorize(Roles = Constants.Roles.Administrator)]
     public async Task<IActionResult> AddUser([FromQuery] UserRegisterDto dto)
     {
-        var user = new IdentityUser
+        var user = new User
         {
             UserName = dto.Username,
             EmailConfirmed = true
@@ -48,30 +49,27 @@ public class UserController : ControllerBase
 
         return Ok("registered");
     }
-    //[HttpGet("users")]
 
-    [AllowAnonymous]
     [HttpGet("claims")]
+    [Authorize(Policy = Constants.Policies.UserAccess)]
     public async Task<IActionResult> Claims()
     {
-        try
-        {
-            var claimsList = HttpContext.User.Claims
-                .Where(c => c.Type.Contains("claims"))
-                .Select(claim => new
-                {
-                    ClaimType = claim.Type,
-                    Value = claim.Value
-                });
+        var claimsList = HttpContext.User.Claims
+            .Where(c => c.Type.Contains("claims"))
+            .Select(claim => new
+            {
+                claim.Type,
+                claim.Value
+            });
 
-            if (!claimsList.Any()) return Unauthorized();
+        if (!claimsList.Any()) return await SignOutUser();
 
-            return Ok(new { signedIn = true, claimsList });
-        }
-        catch (Exception)
-        {
-            await _signInManager.SignOutAsync();
-            return Unauthorized();
-        }
+        return Ok(new { signedIn = true, claimsList });
+    }
+
+    private async Task<IActionResult> SignOutUser()
+    {
+        await _signInManager.SignOutAsync();
+        return Unauthorized();
     }
 }
