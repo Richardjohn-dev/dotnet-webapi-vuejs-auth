@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auth.API", "auth.API\Auth.API.csproj", "{C8EB6BC2-5095-4006-8B54-FD35ACC61261}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Auth.API", "auth.API\Auth.API.csproj", "{C8EB6BC2-5095-4006-8B54-FD35ACC61261}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoleBasedAuthIdentity.API", "AuthIdentity.API\RoleBasedAuthIdentity.API.csproj", "{9330ECFA-EFFA-493F-A9C7-C1ADB056B526}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoleBasedIdentityAuthentication.API", "RoleBasedIdentityAuthentication.API\RoleBasedIdentityAuthentication.API.csproj", "{B10F9C29-5436-44EF-9703-4F6A63B70FE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoleBasedIdentityAuthentication.API", "RoleBasedIdentityAuthentication.API\RoleBasedIdentityAuthentication.API.csproj", "{B10F9C29-5436-44EF-9703-4F6A63B70FE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,10 +17,6 @@ Global
 		{C8EB6BC2-5095-4006-8B54-FD35ACC61261}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8EB6BC2-5095-4006-8B54-FD35ACC61261}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8EB6BC2-5095-4006-8B54-FD35ACC61261}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9330ECFA-EFFA-493F-A9C7-C1ADB056B526}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9330ECFA-EFFA-493F-A9C7-C1ADB056B526}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9330ECFA-EFFA-493F-A9C7-C1ADB056B526}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9330ECFA-EFFA-493F-A9C7-C1ADB056B526}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B10F9C29-5436-44EF-9703-4F6A63B70FE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B10F9C29-5436-44EF-9703-4F6A63B70FE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B10F9C29-5436-44EF-9703-4F6A63B70FE0}.Release|Any CPU.ActiveCfg = Release|Any CPU

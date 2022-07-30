@@ -52,7 +52,7 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("claims")]
-    public IActionResult Claims()
+    public async Task<IActionResult> Claims()
     {
         try
         {
@@ -64,12 +64,13 @@ public class UserController : ControllerBase
                     Value = claim.Value
                 });
 
-            if (!claimsList.Any()) return Unauthorized(new { signedIn = false });
+            if (!claimsList.Any()) return Unauthorized();
 
-            return Ok(claimsList);
+            return Ok(new { signedIn = true, claimsList });
         }
         catch (Exception)
         {
+            await _signInManager.SignOutAsync();
             return Unauthorized();
         }
     }
